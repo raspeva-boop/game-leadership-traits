@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Crisis Room</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e8edf1;--surf:#fff;--ink:#14213d;--mute:#5b6678;--line:#c9d2dc;--card:#14213d;--cardtx:#fff;--alert:#e4572e;--a:#12877b;--b:#8a3a9b;--ok:#1f8a4c;--no:#c0392b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101722;--surf:#1a2433;--ink:#eef2f7;--mute:#9aa7ba;--line:#2e3b50;--card:#26364f;--cardtx:#fff;--a:#37c4b5;--b:#c77bd8;--ok:#4cc27c;--no:#ff7a6b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101722;--surf:#1a2433;--ink:#eef2f7;--mute:#9aa7ba;--line:#2e3b50;--card:#26364f;--cardtx:#fff;--a:#37c4b5;--b:#c77bd8;--ok:#4cc27c;--no:#ff7a6b;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 Rubik,system-ui,sans-serif;min-height:100vh}
+main{max-width:980px;margin:0 auto;padding:20px 14px 40px}
+h1{font-size:clamp(26px,5vw,40px);font-weight:800;margin:0 0 4px;letter-spacing:-.02em}
+.sub{color:var(--mute);margin:0 0 18px}
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.team{background:var(--surf);border:2px solid var(--line);border-radius:14px;padding:12px 14px;transition:border-color .2s,transform .2s}
+.team.on{border-color:var(--c);transform:translateY(-2px)}
+.team input{all:unset;font-weight:700;color:var(--c);width:100%;font-size:17px}
+.team input:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+.score{font-size:clamp(38px,9vw,64px);font-weight:800;line-height:1;margin-top:4px}
+.turn{font-size:13px;color:var(--mute);min-height:20px;margin-top:4px}
+.team.on .turn{color:var(--c);font-weight:500}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(6px,1.5vw,14px)}
+.c{aspect-ratio:3/4;border:0;border-radius:12px;background:var(--card);color:var(--cardtx);font:800 clamp(22px,5vw,44px) Rubik,sans-serif;cursor:pointer;position:relative;transition:transform .15s}
+.c::after{content:"";position:absolute;top:8%;right:10%;width:clamp(6px,1.2vw,10px);height:clamp(6px,1.2vw,10px);border-radius:50%;background:var(--alert)}
+.c:hover{transform:translateY(-4px) rotate(-1deg)}
+.c:focus-visible{outline:3px solid var(--alert);outline-offset:3px}
+.c.used{background:transparent;border:2px dashed var(--line);color:var(--mute);cursor:default;transform:none;font-size:clamp(11px,2.2vw,16px);font-weight:500;padding:4px}
+.c.used::after{display:none}
+.bar{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.btn{font:500 15px Rubik,sans-serif;border:2px solid var(--ink);background:transparent;color:var(--ink);border-radius:10px;padding:10px 16px;cursor:pointer}
+.btn:focus-visible{outline:3px solid var(--alert);outline-offset:2px}
+.btn.fill{background:var(--ink);color:var(--bg)}
+.log{margin-top:16px;color:var(--mute);font-size:14px;padding-left:18px}
+.ov{position:fixed;inset:0;background:rgba(10,16,28,.72);display:none;align-items:center;justify-content:center;padding:14px;z-index:5;overflow:auto}
+.ov.show{display:flex}
+.modal{background:var(--surf);border-radius:18px;max-width:560px;width:100%;padding:22px;border-top:8px solid var(--c,var(--alert));animation:pop .18s ease-out}
+@keyframes pop{from{transform:scale(.94);opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.who{font-weight:700;color:var(--c);margin-bottom:6px}
+.sit{font-size:clamp(19px,4vw,24px);font-weight:500;line-height:1.35;margin:4px 0 14px}
+.hint{color:var(--mute);font-size:14px;margin-bottom:10px}
+.traits{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.t{border:1.5px solid var(--line);border-radius:999px;padding:5px 12px;font-size:14px;background:transparent;color:var(--ink);font-family:inherit;cursor:pointer}
+.t.sel{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.key{font-size:14px;color:var(--mute);margin-bottom:14px}
+.key b{color:var(--ink)}
+.row{display:flex;gap:10px}
+.row .btn{flex:1;padding:14px;font-size:17px;font-weight:700}
+.ok{border-color:var(--ok);color:var(--ok)}.no{border-color:var(--no);color:var(--no)}
+.ok:hover{background:var(--ok);color:#fff}.no:hover{background:var(--no);color:#fff}
+.timer{float:right;font-size:30px;font-weight:800}.timer.low{color:var(--no)}.big{font-size:28px;font-weight:800;margin:4px 0 8px}
+.tw{background:color-mix(in srgb,var(--alert) 14%,transparent);border-left:5px solid var(--alert);border-radius:8px;padding:10px 12px;margin:10px 0 14px;font-weight:500}
+</style>
+</head>
+<body>
+<main>
+<h1>Crisis Room</h1>
+<p class="sub">Pick a card, read the crisis aloud, choose one leader trait and say: “I would say…”</p>
+<div class="teams" id="teams"></div>
+<div class="grid" id="grid" aria-label="Cards"></div>
+<div class="bar"><button class="btn fill" id="reset">New game</button><button class="btn" id="theme">Theme</button></div>
+<ol class="log" id="log" reversed></ol>
+</main>
+<div class="ov" id="ov"><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+
+<script>
+const CR=[
+["An investor visits tomorrow. Two team members disagree about what to present, and there is no time to discuss it again.","Decision making"],
+["You accidentally sent the wrong report to an important client.","Responsibility"],
+["A client offers you a big bonus if you “slightly improve” the numbers in your report.","Integrity"],
+["Your team has been working for weeks, but nobody can explain why this project matters.","Vision"],
+["Half of your team didn’t understand the new process because the instructions were too long and complicated.","Communication"],
+["You are working until midnight doing everything yourself, while talented colleagues have almost nothing to do.","Delegation"],
+["After the third rejected proposal, your team wants to give up.","Motivation"],
+["The supplier cancelled the order, and the team has no materials one week before the launch.","Problem solving"],
+["The team keeps missing small deadlines, and meetings always start late.","Discipline"],
+["A skeptical board asks: “Why should we trust your team with this project?”","Confidence"]];
+const TR=["Vision","Decision making","Confidence","Communication","Responsibility","Integrity","Discipline","Problem solving","Delegation","Motivation"];
+const CR_RU=[
+["Завтра приедет инвестор. Двое в команде спорят о том, что показывать, а времени обсудить заново нет.","Принятие решений"],
+["Вы случайно отправили важному клиенту не тот отчёт.","Ответственность"],
+["Клиент предлагает большой бонус, если вы «слегка улучшите» цифры в отчёте.","Честность"],
+["Команда работает над проектом уже несколько недель, но никто не может объяснить, зачем он нужен.","Видение"],
+["Половина команды не поняла новый процесс: инструкции были слишком длинными и сложными.","Коммуникация"],
+["Вы сидите до полуночи и делаете всё сами, а талантливые коллеги почти без дела.","Делегирование"],
+["После третьего отклонённого предложения команда хочет сдаться.","Мотивация"],
+["Поставщик отменил заказ, и за неделю до запуска у команды нет материалов.","Решение проблем"],
+["Команда срывает мелкие дедлайны, а совещания всегда начинаются с опозданием.","Дисциплина"],
+["Скептичный совет директоров спрашивает: «Почему мы должны доверить этот проект вашей команде?»","Уверенность"]];
+const TR_RU=["Видение","Принятие решений","Уверенность","Коммуникация","Ответственность","Честность","Дисциплина","Решение проблем","Делегирование","Мотивация"];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let S;
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a}
+function newGame(){
+  const ids=shuffle([...Array(10).keys()]),amt=shuffle([10,20,30]);
+  const names=S?[S.t[0].name,S.t[1].name]:["Team 1","Team 2"];
+  S={t:[{name:names[0],pts:0},{name:names[1],pts:0}],cur:0,
+    cards:CR.map((c,i)=>({i,used:false,kind:"q",amt:0,res:""})),log:[]};
+  S.cards[ids[0]].kind="skip";
+  [1,2,3].forEach(k=>{S.cards[ids[k]].kind="tw";S.cards[ids[k]].amt=amt[k-1]});
+  render();
+}
+function render(){
+  $("#teams").innerHTML=S.t.map((t,k)=>`<div class="team ${S.cur===k?"on":""}" style="--c:var(${k?"--b":"--a"})"><input value="${esc(t.name)}" data-k="${k}" aria-label="Team name"><div class="score">${t.pts}</div><div class="turn">${S.cur===k?"Playing now":""}</div></div>`).join("");
+  document.querySelectorAll(".team input").forEach(el=>el.oninput=()=>{S.t[el.dataset.k].name=el.value});
+  $("#grid").innerHTML=S.cards.map(c=>c.used?`<button class="c used" disabled>${esc(c.res)}</button>`:`<button class="c" data-i="${c.i}" aria-label="Card ${c.i+1}">${c.i+1}</button>`).join("");
+  document.querySelectorAll(".c:not(.used)").forEach(el=>el.onclick=()=>open(+el.dataset.i));
+  $("#log").innerHTML=S.log.map(l=>`<li>${l}</li>`).join("");
+  if(S.cards.every(c=>c.used)) setTimeout(finish,300);
+}
+let sel=null,TI,TL,AC;
+function ac(){AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();return AC}
+function playBoom(){try{const a=ac(),t=a.currentTime,len=a.sampleRate*2,buf=a.createBuffer(1,len,a.sampleRate),d=buf.getChannelData(0);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2);const n=a.createBufferSource();n.buffer=buf;const f=a.createBiquadFilter();f.type="lowpass";f.frequency.setValueAtTime(3000,t);f.frequency.exponentialRampToValueAtTime(60,t+1.8);n.connect(f).connect(a.destination);n.start(t);const o=a.createOscillator(),og=a.createGain();o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(30,t+.8);og.gain.setValueAtTime(1,t);og.gain.exponentialRampToValueAtTime(.001,t+1);o.connect(og).connect(a.destination);o.start(t);o.stop(t+1)}catch(e){}}
+function playWin(){try{const a=ac(),t=a.currentTime,m=a.createGain();m.gain.setValueAtTime(.25,t);m.gain.setValueAtTime(.25,t+5.2);m.gain.linearRampToValueAtTime(0,t+6);m.connect(a.destination);
+const N={C4:261.63,E4:329.63,G4:392,A4:440,B4:493.88,C5:523.25,D5:587.33,E5:659.25};
+[["G4",0,.35],["G4",.4,.35],["C5",.8,.7],["B4",1.6,.35],["A4",2,.35],["G4",2.4,.7],["E5",3.2,.5],["D5",3.8,.5],["C5",4.4,1.6],["C4",4.4,1.6],["E4",4.4,1.6],["G4",4.4,1.6]].forEach(([k,s,d])=>{const o=a.createOscillator(),g=a.createGain();o.type="triangle";o.frequency.value=N[k];g.gain.setValueAtTime(.0001,t+s);g.gain.exponentialRampToValueAtTime(1,t+s+.04);g.gain.exponentialRampToValueAtTime(.001,t+s+d);o.connect(g).connect(m);o.start(t+s);o.stop(t+s+d+.05)})}catch(e){}}
+function beep(){try{const a=ac(),o=a.createOscillator(),g=a.createGain();o.frequency.value=880;g.gain.setValueAtTime(.3,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.6);o.connect(g).connect(a.destination);o.start();o.stop(a.currentTime+.6)}catch(e){}}
+function stopTimer(){clearInterval(TI)}
+function tick(){const e=$("#tm");if(!e)return;e.textContent=TL>0?Math.floor(TL/60)+":"+String(TL%60).padStart(2,"0"):"Time’s up!";e.classList.toggle("low",TL<=10)}
+function startTimer(){stopTimer();TL=60;tick();TI=setInterval(()=>{TL--;tick();if(TL<=0){stopTimer();beep()}},1000)}
+function open(i){
+  const c=S.cards[i],team=S.t[S.cur],col=`var(${S.cur?"--b":"--a"})`;
+  sel=null;
+  const m=$("#modal");m.style.setProperty("--c",col);
+  if(c.kind==="skip"){
+    m.innerHTML=`<div class="who">${esc(team.name)}</div><div class="big">⏭ Skip turn</div><p class="sit">This card has no crisis. The turn passes to the other team.</p><div class="row"><button class="btn fill" id="go">Pass the turn</button></div>`;
+    $("#go").onclick=()=>{c.used=true;c.res="Skip";S.log.unshift(`${esc(team.name)}: skipped turn`);next()};
+  }else{
+    const [txt,key]=CR[i];
+    m.innerHTML=`<div class="timer" id="tm">1:00</div><div class="who">${esc(team.name)} · card ${i+1}</div><p class="sit">${esc(txt)}</p><div class="hint">Choose one trait (1 minute):</div><div class="traits">${TR.map(t=>`<button class="t" data-t="${t}">${t}</button>`).join("")}</div><div class="key"><button class="btn" id="showkey" style="padding:6px 12px;font-size:13px">Teacher’s key</button> <span id="keyv"></span></div><div class="row"><button class="btn ok" id="y">✔ Correct</button><button class="btn no" id="n">✘ Wrong</button></div>`;
+    m.querySelectorAll(".t").forEach(b=>b.onclick=()=>{m.querySelectorAll(".t").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");sel=b.dataset.t});
+    $("#showkey").onclick=()=>{$("#keyv").innerHTML=`<b>${esc(key)}</b> — another answer counts if the team defends it well`};
+    $("#y").onclick=()=>judge(c,true);$("#n").onclick=()=>judge(c,false);startTimer();
+  }
+  $("#ov").classList.add("show");
+}
+function judge(c,ok){
+  const a=S.cur,b=1-a,team=S.t[a];let tw="";
+  stopTimer();ok?playWin():playBoom();if(ok)team.pts+=10;
+  let line=`${esc(team.name)}: card ${c.i+1} — ${ok?"correct +10":"wrong"}`;
+  if(c.kind==="tw"){
+    const dir=Math.random()<.5?[a,b]:[b,a],from=S.t[dir[0]],to=S.t[dir[1]];
+    const real=Math.min(c.amt,from.pts);from.pts-=real;to.pts+=real;
+    tw=`<div class="tw">⚡ Points transfer: ${esc(from.name)} gives up ${c.amt}, ${esc(to.name)} gets ${real}${real<c.amt?" (the giving team had fewer)":""}.</div>`;
+    line+=`; ⚡ ${esc(from.name)} → ${esc(to.name)}: ${real}`;
+  }
+  c.used=true;c.res=(ok?"+10":"0")+(c.kind==="tw"?" ⚡"+c.amt:"");
+  S.log.unshift(line);
+  $("#modal").innerHTML=`<div class="who">${esc(team.name)}</div><div class="big">${ok?"+10 points":"No points"}</div>${tw}<div class="row"><button class="btn fill" id="go">Next</button></div>`;
+  $("#go").onclick=next;
+}
+function next(){stopTimer();S.cur=1-S.cur;$("#ov").classList.remove("show");render()}
+function finish(){
+  const [x,y]=S.t,m=$("#modal");
+  const w=x.pts===y.pts?"It’s a tie!":`${esc(x.pts>y.pts?x.name:y.name)} wins!`;
+  m.style.setProperty("--c","var(--alert)");
+  m.innerHTML=`<div class="big">${w}</div><p class="sit">${esc(x.name)}: ${x.pts} · ${esc(y.name)}: ${y.pts}</p><div class="row"><button class="btn fill" id="go">Play again</button></div>`;
+  $("#go").onclick=()=>{$("#ov").classList.remove("show");newGame()};
+  $("#ov").classList.add("show");
+}
+$("#reset").onclick=()=>{if(confirm("Start a new game? Scores will reset.")){$("#ov").classList.remove("show");newGame()}};
+$("#theme").onclick=()=>{const r=document.documentElement,d=r.dataset.theme==="dark"||(!r.dataset.theme&&matchMedia("(prefers-color-scheme:dark)").matches);r.dataset.theme=d?"light":"dark"};
+newGame();
+</script>
+</body>
+</html>
